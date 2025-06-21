@@ -8,13 +8,12 @@ services:
     ports:
       - '${PORT}:3000'
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
       - PORT=${PORT}
     depends_on:
       postgres:
         condition: service_healthy
-    command: sh -c "npx prisma migrate deploy && npm run db:seed && npm run start"
     env_file:
       - .env
 
@@ -28,6 +27,7 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
