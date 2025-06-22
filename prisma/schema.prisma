@@ -1,0 +1,62 @@
+// Location Log API - Prisma Schema
+// Geospatial location logging with PostgreSQL + PostGIS
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  surname   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  logs AreaEntryLog[]
+
+  @@map("users")
+}
+
+// Area model with GeoJSON polygon support
+model Area {
+  id        String    @id @default(uuid())
+  name      String
+  geom      Unsupported("geometry(Polygon,4326)") // Polygon geometry column
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? 
+  
+  // Relations
+  logs AreaEntryLog[]
+
+  @@map("areas")
+  @@index([geom], type: Gist, name: "areas_geom_gist_idx")
+}
+
+// Area entry log model
+model AreaEntryLog {
+  id        String    @id @default(uuid())
+  userId    String
+  areaId    String
+  entryTime DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+  area Area @relation(fields: [areaId], references: [id])
+
+  @@map("area_entry_logs")
+  @@index([userId])
+  @@index([areaId])
+  @@index([entryTime])
+  @@index([createdAt])
+}
