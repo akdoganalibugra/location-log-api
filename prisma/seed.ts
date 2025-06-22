@@ -12,70 +12,76 @@ async function main() {
   await prisma.user.deleteMany({});
 
   const users = await Promise.all([
-    prisma.user.create({
-      data: {
-        name: 'Ahmet',
-        surname: 'Yılmaz',
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Elif',
-        surname: 'Demir',
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Murat',
-        surname: 'Kaya',
-      },
-    }),
+    prisma.user.create({ data: { name: 'Ahmet', surname: 'Yılmaz' } }),
+    prisma.user.create({ data: { name: 'Elif', surname: 'Demir' } }),
+    prisma.user.create({ data: { name: 'Murat', surname: 'Kaya' } }),
   ]);
 
   console.log(`Created ${users.length} users`);
 
-  // Taksim Square
-  await prisma.$executeRaw`
-   INSERT INTO areas (id, name, geom, "createdAt", "updatedAt")
-   VALUES (
-     gen_random_uuid()::text,
-     'Taksim Square',
-     ST_GeomFromText('POLYGON((28.9845 41.0364, 28.9855 41.0364, 28.9855 41.0374, 28.9845 41.0374, 28.9845 41.0364))', 4326),
-     NOW(),
-     NOW()
-   )
- `;
+  // Seed areas (polygon: [ [lng, lat], ... ])
+  const areaDefs = [
+    {
+      name: 'Taksim Square',
+      polygon: [
+        [28.9845, 41.0364],
+        [28.9855, 41.0364],
+        [28.9855, 41.0374],
+        [28.9845, 41.0374],
+        [28.9845, 41.0364], // Close polygon (first = last)
+      ],
+    },
+    {
+      name: 'Galata Square',
+      polygon: [
+        [28.9739, 41.0252],
+        [28.9749, 41.0252],
+        [28.9749, 41.0262],
+        [28.9739, 41.0262],
+        [28.9739, 41.0252],
+      ],
+    },
+    {
+      name: 'Gülhane Park',
+      polygon: [
+        [28.9786, 41.0131],
+        [28.9796, 41.0131],
+        [28.9796, 41.0141],
+        [28.9786, 41.0141],
+        [28.9786, 41.0131],
+      ],
+    },
+  ];
 
-  // Galata Square
-  await prisma.$executeRaw`
-   INSERT INTO areas (id, name, geom, "createdAt", "updatedAt")
-   VALUES (
-     gen_random_uuid()::text,
-     'Galata Square',
-     ST_GeomFromText('POLYGON((28.9739 41.0252, 28.9749 41.0252, 28.9749 41.0262, 28.9739 41.0262, 28.9739 41.0252))', 4326),
-     NOW(),
-     NOW()
-   )
- `;
+  // Add areas to DB with polygon as JSON
+  const areas = [];
+  for (const def of areaDefs) {
+    const area = await prisma.area.create({
+      data: {
+        name: def.name,
+        polygon: def.polygon as any,
+      },
+    });
+    areas.push(area);
+  }
+  console.log(`Created ${areas.length} areas with polygon data`);
 
-  // Gülhane Park
-  await prisma.$executeRaw`
-   INSERT INTO areas (id, name, geom, "createdAt", "updatedAt")
-   VALUES (
-     gen_random_uuid()::text,
-     'Gülhane Park',
-     ST_GeomFromText('POLYGON((28.9786 41.0131, 28.9796 41.0131, 28.9796 41.0141, 28.9786 41.0141, 28.9786 41.0131))', 4326),
-     NOW(),
-     NOW()
-   )
- `;
+  // Update 'geom' field for PostGIS, using polygon (as GeoJSON)
+  for (const area of areas) {
+    const geojson = JSON.stringify({
+      type: 'Polygon',
+      coordinates: [area.polygon],
+    });
 
-  console.log(`Created 3 areas with PostGIS geometry`);
+    await prisma.$executeRawUnsafe(
+      `UPDATE "areas" SET geom = ST_GeomFromGeoJSON($1) WHERE id = $2`,
+      geojson,
+      area.id,
+    );
+  }
+  console.log('Updated geom field for all areas');
 
-  const areas = await prisma.area.findMany({
-    select: { id: true, name: true },
-  });
-
+  // Seed logs (AreaEntryLog)
   const logs = await Promise.all([
     prisma.areaEntryLog.create({
       data: {
@@ -99,6 +105,7 @@ async function main() {
       },
     }),
   ]);
+  console.log(`Created ${logs.length} area entry logs`);
 
   console.log(`Created ${logs.length} entry logs`);
   console.log('Seeding completed successfully!');
