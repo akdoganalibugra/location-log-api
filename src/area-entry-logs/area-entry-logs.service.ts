@@ -23,10 +23,6 @@ export class AreaEntryLogsService {
       this.databaseService.areaEntryLog.count({ where }),
       this.databaseService.areaEntryLog.findMany({
         where,
-        include: {
-          user: true,
-          area: true,
-        },
         orderBy: { entryTime: 'desc' },
         skip,
         take,
