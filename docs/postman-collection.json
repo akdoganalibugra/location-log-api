@@ -1,0 +1,244 @@
+{
+	"info": {
+		"_postman_id": "0e6bd517-1325-4947-92cb-2544828e2058",
+		"name": "Location Log API",
+		"description": "API collection for Location Log system",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46190470"
+	},
+	"item": [
+		{
+			"name": "Areas",
+			"item": [
+				{
+					"name": "Create Area",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Area\",\n  \"polygon\": [\n    [29.0100, 41.0100],\n    [29.0200, 41.0100],\n    [29.0200, 41.0200],\n    [29.0100, 41.0200],\n    [29.0100, 41.0100]\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/areas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"areas"
+							]
+						},
+						"description": "Creates a new geographical area with polygon coordinates"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Areas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/areas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"areas"
+							]
+						},
+						"description": "Retrieves all defined geographical areas"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Area by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/areas/{{areaId1}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"areas",
+								"{{areaId1}}"
+							]
+						},
+						"description": "Retrieves a specific area by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Area",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Area Name\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/areas/{{areaId1}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"areas",
+								"{{areaId1}}"
+							]
+						},
+						"description": "Updates an existing area"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Area",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/areas/{{areaId1}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"areas",
+								"{{areaId1}}"
+							]
+						},
+						"description": "Deletes a specific area"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing geographical areas"
+		},
+		{
+			"name": "Locations",
+			"item": [
+				{
+					"name": "Process Location",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}\",\n  \"lat\": 41.0369,\n  \"lng\": 28.985\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/locations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"locations"
+							]
+						},
+						"description": "Processes user location data"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for processing user location data"
+		},
+		{
+			"name": "Logs",
+			"item": [
+				{
+					"name": "Get Logs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/logs?page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"logs"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "userId",
+									"value": "{{userId}}",
+									"disabled": true
+								},
+								{
+									"key": "areaId",
+									"value": "{{areaId}}",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Retrieves area entry logs"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for querying area entry logs"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "6996de0a-baa6-4725-9789-22092ed95e33",
+			"type": "string"
+		},
+		{
+			"key": "areaId",
+			"value": "2e3c3bf7-1f6d-41a3-a70d-f4fffe2da5b4",
+			"type": "string"
+		}
+	]
+}
