@@ -1,85 +1,193 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Location Log API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Kullanıcı konum **(enlem-boylam)** bazlı coğrafi alan giriş kontrolü & loglama API.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📑 İçindekiler
 
-## Description
+- [Proje Açıklaması](#proje-açıklaması)
+- [Sistem Mimarisi](#-sistem-mimarisi)
+- [Özellikler](#-özellikler)
+- [Teknolojiler](#️-teknolojiler)
+- [Geliştirme Notları](#-geliştirme-notları)
+- [Proje Yapısı](#-proje-yapısı)
+- [API Endpoint'leri](#-api-endpointleri)
+- [Postman Collection](#-postman-collection)
+- [Docker Servisleri](#-docker-servisleri)
+- [Kurulum ve Çalıştırma](#-kurulum-ve-çalıştırma)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Proje Açıklaması
 
-## Project setup
+Bu proje, kullanıcıların belirli coğrafi alanlara giriş hareketlerini loglayan bir sistemdir. NestJS, PostgreSQL/PostGIS, Prisma, Kafka ve Docker kullanılarak sistemin performans odağında bir case çalışması olarak geliştirilmiştir.
 
-```bash
-$ npm install
+## 🏗️ Sistem Mimarisi
+
+![Architecture](docs/architecture.png)
+
+- **🌐 İstemci Katmanı**: Mobil/Web uygulamalar ve test araçları
+- **🏗️ Ana Uygulama**: NestJS tabanlı REST API servisi
+- **📨 Mesajlaşma Sistemi**: Kafka ile event-driven asenkron işleme
+- **🗄️ Veritabanı**: PostgreSQL + PostGIS ile spatial veri yönetimi
+
+**🔄 Veri Akışı**: Konum verisi gelir → Spatial kontrol → Kafka event → Asenkron log yazımı
+
+### 🚀 Özellikler
+
+- **Coğrafi Alan Yönetimi**: Polygon koordinatları ile coğrafi alanlar tanımlama
+- **Konum İşleme**: Kullanıcı konumlarını girdiği alanlar üzerinde olarak işleme
+- **Event-Driven Architecture**: Kafka ile asenkron mesajlaşma
+- **Performanslı Sorgulama**: Sayfalandırma ve filtreleme desteği
+- **Ölçeklenebilir Mimari**: Worker & Kafka Partioning tabanlı yapı
+- **PostGIS Desteği**: Jeospatial veri işleme
+
+## 🛠️ Teknolojiler
+
+- **NestJS**: Backend framework
+- **PostgreSQL + PostGIS**: Veritabanı ve jeospatial işlemler
+- **Prisma**: ORM ve veritabanı yönetimi
+- **Apache Kafka**: Event streaming ve mesajlaşma
+- **Docker**: Konteynerleştirme ve orkestrasyon
+
+## 🔧 Geliştirme Notları
+
+- **Kafka Partitioning**: UserId bazlı partition dağılımı
+- **PostGIS**: ST_Contains fonksiyonu ile polygon-point kontrolü
+- **Event-Driven**: Konum işleme asenkron olarak Kafka üzerinden
+
+## 📁 Proje Yapısı
+
+```
+src/
+├── areas/              # Coğrafi alan yönetimi
+├── area-entry-logs/    # Log sorgulama modülü
+├── locations/          # Konum işleme modülü
+├── log-worker/         # Kafka consumer worker
+├── database/           # Prisma veritabanı servisi
+├── kafka/              # Kafka producer/consumer
+├── utils/              # Yardımcı fonksiyonlar
+└── main.ts            # Ana uygulama entry point
+
+docs/
+└── postman-collection.json  # API test collection'ı
+
+prisma/
+├── schema.prisma      # Veritabanı şeması
+├── seed.ts           # Test verisi
+└── migrations/       # Veritabanı migration'ları
 ```
 
-## Compile and run the project
+## 📋 API Endpoint'leri
+
+### Areas (Coğrafi Alanlar)
+
+- `POST /areas` - Yeni alan oluştur
+- `GET /areas` - Tüm alanları listele
+- `GET /areas/:id` - Belirli bir alanı getir
+- `PATCH /areas/:id` - Alan güncelle
+- `DELETE /areas/:id` - Alan sil
+
+### Locations (Konum İşleme)
+
+- `POST /locations` - Kullanıcı konumunu işle.
+
+### Logs (Alan Giriş Logları)
+
+- `GET /logs` - Logları listele (sayfalandırma ve filtreleme ile)
+
+## 📚 Postman Collection
+
+API endpoint'lerini test etmek için hazır Postman collection'ı kullanabilirsiniz:
+
+1. `docs/postman-collection.json` dosyasını Postman'e import edin
+2. Environment değişkenleri otomatik olarak gelecektir
+3. Tüm endpoint'leri örnek verilerle test edebilirsiniz
+
+**💡 Hızlı Test İpucu:** Kurulum adımlarında 4. aşamadaki seed verilerini yüklemeyi unutmayın! Bu sayede collection'daki environment değişkenleri gerçek verilerle çalışacak ve direkt test etmeye başlayabilirsiniz.
+
+## 🐳 Docker Servisleri
+
+Proje aşağıdaki Docker servislerini içerir:
+
+- **app**: Ana NestJS uygulaması (Port: 3000)
+- **log-worker**: Kafka consumer worker
+- **postgres**: PostgreSQL + PostGIS (Port: 5432)
+- **kafka**: Apache Kafka (Port: 9092)
+- **zookeeper**: Kafka Zookeeper (Port: 2181)
+
+## 🚀 Kurulum ve Çalıştırma
+
+### Gereksinimler
+
+- **Docker** ve **Docker Compose**
+- Git
+
+### Kurulum Adımları
+
+1. **Projeyi klonlayın**
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone <repository-url>
+cd location-log-api
 ```
 
-## Run tests
+2. **Environment dosyasını hazırlayın**
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
+# Varsayılan ayarlar Docker için optimize edilmiştir
 ```
 
-## Resources
+3. **Tüm servisleri Docker ile başlatın**
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# Tüm servisleri arka planda başlat (ilk çalıştırmada image'lar indirilecek)
+docker-compose up -d
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Servislerin ayağa kalkmasını bekleyin (yaklaşık 30-60 saniye)
+docker-compose logs -f app
 
-## Support
+# CTRL+C ile çıkış yapın
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+4. **Veritabanı migration ve seed işlemleri**
 
-## Stay in touch
+```bash
+# Migration'ları çalıştır
+docker-compose exec app npm run db:migrate:deploy
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Test verilerini yükle
+docker-compose exec app npm run db:seed
+```
 
-## License
+5. **API'yi test edin**
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+# Alanları listele
+curl http://localhost:3000/areas
+```
+
+### 🔍 Servis Durumunu Kontrol Etme
+
+```bash
+# Tüm servislerin durumunu görüntüle
+docker-compose ps
+
+# Logları takip et
+docker-compose logs -f
+
+# Belirli bir servisin loglarını izle
+docker-compose logs -f app
+docker-compose logs -f kafka
+```
+
+### 🧹 Temizlik İşlemleri
+
+```bash
+# Servisleri durdur
+docker-compose down
+
+# Veritabanını da sıfırla (volume'ları sil)
+docker-compose down -v
+
+# Tüm container'ları ve image'ları temizle
+docker-compose down --rmi all -v
+```
