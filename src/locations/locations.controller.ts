@@ -7,7 +7,7 @@ export class LocationsController {
   constructor(private readonly locationsService: LocationsService) {}
 
   @Post()
-  async processLocation(@Body(ValidationPipe) locationDto: LocationDto) {
+  processLocation(@Body(ValidationPipe) locationDto: LocationDto) {
     return this.locationsService.processLocation(locationDto);
   }
 }
